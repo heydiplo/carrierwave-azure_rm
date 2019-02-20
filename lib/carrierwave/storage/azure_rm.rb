@@ -44,14 +44,6 @@ module CarrierWave
           end
         end
 
-        def access_level
-          unless @public_access_level
-            container, signed_identifiers = @connection.get_container_acl(@uploader.send("azure_container"))
-            @public_access_level = container.public_access_level || 'private' # when container access level is private, it returns nil
-          end
-          @public_access_level
-        end
-
         def store!(file)
           ensure_container_exists(@uploader.send("azure_container"))
           @content_type = file.content_type
@@ -141,7 +133,9 @@ module CarrierWave
         end
 
         def sign_url?(options)
-          @uploader.auto_sign_urls && !options[:skip_signing] && access_level == 'private'
+          @uploader.auto_sign_urls &&
+            !options[:skip_signing] &&
+            @uploader.public_access_level == 'private'
         end
 
         def blob
